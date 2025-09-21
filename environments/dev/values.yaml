@@ -1,0 +1,4 @@
+replicaCount: 1
+image:
+  repository: thonglinux/argocd-demo
+  tag: "latest"  # bước đầu dùng "latest" cho dễ test

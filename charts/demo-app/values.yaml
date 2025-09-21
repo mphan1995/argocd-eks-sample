@@ -1,0 +1,9 @@
+replicaCount: 1
+image:
+  repository: thonglinux/argocd-rollback-me-if-you-see-this
+  tag: "latest"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+resources: {}

@@ -1,0 +1,6 @@
+<h1 style='font-family: sans-serif'>Hello from ArgoCD + EKS (GitOps) 👋</h1>
+<p>Env: <span id='env'>unknown</span></p>
+<script>
+  document.getElementById('env').textContent =
+    (location.hostname.includes('dev') ? 'dev' : 'staging');
+</script>
