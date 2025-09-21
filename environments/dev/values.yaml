@@ -1,4 +1,4 @@
 replicaCount: 1
 image:
   repository: thonglinux/argocd-demo
-  tag: "latest"  # bước đầu dùng "latest" cho dễ test
+  tag: "sha-11b175d"  # bước đầu dùng "latest" cho dễ test

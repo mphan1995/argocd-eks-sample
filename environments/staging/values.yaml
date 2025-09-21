@@ -1,4 +1,4 @@
 replicaCount: 2
 image:
   repository: thonglinux/argocd-demo
-  tag: "latest"
+  tag: "sha-11b175d"
