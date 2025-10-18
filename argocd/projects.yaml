@@ -10,9 +10,19 @@ spec:
   destinations:
     - namespace: demo
       server: https://kubernetes.default.svc
-  clusterResourceBlacklist:
-    - group: ""
-      kind: Secret
+
+  # Cho phép tất cả namespace-level resources
   namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Service
     - group: apps
       kind: Deployment
+    - group: networking.k8s.io
+      kind: Ingress
+
+  # (tùy chọn) cho phép cluster-wide nếu cần
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
