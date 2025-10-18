@@ -1,0 +1,13 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Helm / K8s
+*.tgz
+*.log
+chart.lock
+
+# Terraform (nếu có)
+.terraform/
+terraform.tfstate*
