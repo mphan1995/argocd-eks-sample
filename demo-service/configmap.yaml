@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-config
+data:
+  APP_MODE: "demo"
+  MESSAGE: "Hello from ArgoCD Lab! This created by Max Phan"
