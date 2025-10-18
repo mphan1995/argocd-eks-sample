@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: demo-project
+  namespace: argocd
+spec:
+  description: Demo project for ArgoCD learning
+  sourceRepos:
+    - https://github.com/mphan1995/argocd-eks-sample.git
+  destinations:
+    - namespace: demo
+      server: https://kubernetes.default.svc
+  clusterResourceBlacklist:
+    - group: ""
+      kind: Secret
+  namespaceResourceWhitelist:
+    - group: apps
+      kind: Deployment

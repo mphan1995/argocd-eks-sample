@@ -1,0 +1,3 @@
+p, role:demo-readonly, applications, get, demo/*, allow
+p, role:demo-admin, applications, sync, demo/*, allow
+g, your-user, role:demo-admin
