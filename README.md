@@ -32,6 +32,7 @@ Chế độ dev:
 ```bash
 make ui-dev
 ```
+Trong UI, vào trang Tools để kiểm tra và cài đặt tool bị thiếu.
 
 ## Chạy pipeline
 ```bash
