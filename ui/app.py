@@ -7,7 +7,6 @@ import shutil
 import socket
 import subprocess
 import threading
-import time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -32,6 +31,188 @@ STAGES = [
 ]
 ALLOWED_STAGES = ["all"] + STAGES
 
+TOOLS_CATALOG: List[Dict[str, Any]] = [
+    {
+        "id": "docker",
+        "name": "Docker Engine",
+        "binary": "docker",
+        "version_cmd": ["docker", "--version"],
+        "required_for": ["01_build", "06_deploy"],
+        "critical": True,
+        "recommended": "24.x+",
+        "install": {
+            "mode": "manual",
+            "hint": "Cài Docker Desktop và bật WSL2 integration.",
+        },
+    },
+    {
+        "id": "docker_compose",
+        "name": "Docker Compose",
+        "binary": "docker",
+        "version_cmd": ["docker", "compose", "version"],
+        "required_for": ["stack"],
+        "critical": True,
+        "recommended": "v2.x",
+        "install": {
+            "mode": "manual",
+            "hint": "Cài Docker Desktop hoặc docker-compose plugin.",
+        },
+    },
+    {
+        "id": "python3",
+        "name": "Python 3",
+        "binary": "python3",
+        "version_cmd": ["python3", "--version"],
+        "required_for": ["02_test", "07_verify"],
+        "critical": True,
+        "recommended": "3.10+",
+        "install": {
+            "mode": "manual",
+            "hint": "sudo apt-get install -y python3 python3-venv python3-pip",
+        },
+    },
+    {
+        "id": "pip3",
+        "name": "pip",
+        "binary": "pip3",
+        "version_cmd": ["pip3", "--version"],
+        "required_for": ["02_test"],
+        "critical": False,
+        "recommended": "23.x+",
+        "install": {
+            "mode": "manual",
+            "hint": "sudo apt-get install -y python3-pip",
+        },
+    },
+    {
+        "id": "pytest",
+        "name": "pytest",
+        "binary": "pytest",
+        "version_cmd": ["pytest", "--version"],
+        "required_for": ["02_test"],
+        "critical": False,
+        "recommended": "8.x",
+        "install": {
+            "mode": "script",
+            "command": "python3 -m pip install --user pytest",
+            "requires": ["pip3"],
+            "note": "Cần pip3 trước khi cài pytest.",
+        },
+    },
+    {
+        "id": "kind",
+        "name": "kind",
+        "binary": "kind",
+        "version_cmd": ["kind", "--version"],
+        "required_for": ["06_deploy"],
+        "critical": True,
+        "recommended": "v0.23+",
+        "install": {
+            "mode": "script",
+            "command": "curl -Lo ~/.local/bin/kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64 && chmod +x ~/.local/bin/kind",
+            "requires": ["curl"],
+        },
+    },
+    {
+        "id": "kubectl",
+        "name": "kubectl",
+        "binary": "kubectl",
+        "version_cmd": ["kubectl", "version", "--client", "--short"],
+        "required_for": ["06_deploy", "07_verify"],
+        "critical": True,
+        "recommended": "v1.29+",
+        "install": {
+            "mode": "script",
+            "command": "curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl && install -m 0755 kubectl ~/.local/bin/kubectl",
+            "requires": ["curl"],
+        },
+    },
+    {
+        "id": "helm",
+        "name": "Helm",
+        "binary": "helm",
+        "version_cmd": ["helm", "version", "--short"],
+        "required_for": ["06_deploy"],
+        "critical": True,
+        "recommended": "v3.14+",
+        "install": {
+            "mode": "script",
+            "command": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | HELM_INSTALL_DIR=~/.local/bin bash",
+            "requires": ["curl"],
+        },
+    },
+    {
+        "id": "syft",
+        "name": "Syft (SBOM)",
+        "binary": "syft",
+        "version_cmd": ["syft", "version"],
+        "required_for": ["03_sbom"],
+        "critical": False,
+        "recommended": "v1.x",
+        "install": {
+            "mode": "script",
+            "command": "curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b ~/.local/bin",
+            "requires": ["curl"],
+        },
+    },
+    {
+        "id": "ort",
+        "name": "ORT (SBOM)",
+        "binary": "ort",
+        "version_cmd": ["ort", "--version"],
+        "required_for": ["03_sbom"],
+        "critical": False,
+        "recommended": "latest",
+        "install": {
+            "mode": "manual",
+            "hint": "Cài ORT CLI từ release chính thức (GitHub).",
+        },
+    },
+    {
+        "id": "trivy",
+        "name": "Trivy",
+        "binary": "trivy",
+        "version_cmd": ["trivy", "--version"],
+        "required_for": ["04_scan"],
+        "critical": False,
+        "recommended": "v0.50+",
+        "install": {
+            "mode": "script",
+            "command": "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ~/.local/bin",
+            "requires": ["curl"],
+        },
+    },
+    {
+        "id": "cosign",
+        "name": "Cosign",
+        "binary": "cosign",
+        "version_cmd": ["cosign", "version"],
+        "required_for": ["05_sign"],
+        "critical": False,
+        "recommended": "v2.x",
+        "install": {
+            "mode": "script",
+            "command": "curl -sSfL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o ~/.local/bin/cosign && chmod +x ~/.local/bin/cosign",
+            "requires": ["curl"],
+        },
+    },
+    {
+        "id": "curl",
+        "name": "curl",
+        "binary": "curl",
+        "version_cmd": ["curl", "--version"],
+        "required_for": ["07_verify"],
+        "critical": False,
+        "recommended": "7.x+",
+        "install": {
+            "mode": "manual",
+            "hint": "sudo apt-get install -y curl",
+        },
+    },
+]
+
+TOOLS_INDEX = {tool["id"]: tool for tool in TOOLS_CATALOG}
+
 
 def load_env_file() -> None:
     env_path = ROOT_DIR / ".env"
@@ -46,6 +227,10 @@ def load_env_file() -> None:
 
 
 load_env_file()
+
+local_bin = str(Path.home() / ".local" / "bin")
+if local_bin not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = f"{local_bin}:{os.environ.get('PATH', '')}"
 
 UI_TOKEN = os.environ.get("UI_TOKEN", "")
 REGISTRY_URL = os.environ.get("REGISTRY_URL", "localhost:5000")
@@ -122,39 +307,97 @@ def tail_text(path: Path, max_lines: int = 200) -> str:
 
 def tool_version(cmd: List[str]) -> str:
     try:
-        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=3)
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=4)
         return out.decode().strip()
     except Exception:
         return ""
 
 
+def resolve_docker_compose() -> Dict[str, Any]:
+    if not shutil.which("docker"):
+        return {"ok": False, "version": "", "binary": "docker compose"}
+
+    version = tool_version(["docker", "compose", "version"])
+    binary = "docker compose"
+    if not version and shutil.which("docker-compose"):
+        legacy = tool_version(["docker-compose", "version"])
+        if legacy:
+            version = f"{legacy} (legacy)"
+            binary = "docker-compose"
+    return {"ok": bool(version), "version": version, "binary": binary}
+
+
 def get_tools() -> List[Dict[str, Any]]:
     tools: List[Dict[str, Any]] = []
 
-    def add_tool(name: str, cmd: List[str], which: Optional[str] = None) -> None:
-        present = shutil.which(which or cmd[0]) is not None
-        version = tool_version(cmd) if present else ""
-        tools.append({"name": name, "ok": bool(version), "version": version})
+    for tool in TOOLS_CATALOG:
+        install = tool.get("install", {})
+        install_mode = install.get("mode", "manual")
+        install_command = install.get("command", "")
+        install_hint = install.get("hint", "")
+        install_requires = install.get("requires", [])
+        install_note = install.get("note", "")
 
-    add_tool("docker", ["docker", "--version"], which="docker")
+        if tool["id"] == "docker_compose":
+            compose = resolve_docker_compose()
+            ok = compose["ok"]
+            version = compose["version"]
+            binary = compose["binary"]
+        else:
+            binary = tool["binary"]
+            present = shutil.which(binary) is not None
+            version = tool_version(tool["version_cmd"]) if present else ""
+            ok = bool(version)
 
-    if shutil.which("docker"):
-        version = tool_version(["docker", "compose", "version"])
-        if not version and shutil.which("docker-compose"):
-            version = tool_version(["docker-compose", "version"]) + " (legacy)"
-        tools.append({"name": "docker compose", "ok": bool(version), "version": version})
-    else:
-        tools.append({"name": "docker compose", "ok": False, "version": ""})
-
-    add_tool("kind", ["kind", "--version"], which="kind")
-    add_tool("kubectl", ["kubectl", "version", "--client", "--short"], which="kubectl")
-    add_tool("helm", ["helm", "version", "--short"], which="helm")
-    add_tool("trivy", ["trivy", "--version"], which="trivy")
-    add_tool("cosign", ["cosign", "version"], which="cosign")
-    add_tool("syft", ["syft", "version"], which="syft")
-    add_tool("ort", ["ort", "--version"], which="ort")
+        tools.append(
+            {
+                "id": tool["id"],
+                "name": tool["name"],
+                "binary": binary,
+                "ok": ok,
+                "version": version,
+                "recommended": tool.get("recommended", ""),
+                "critical": tool.get("critical", False),
+                "required_for": tool.get("required_for", []),
+                "installable": install_mode == "script",
+                "install_command": install_command,
+                "install_hint": install_hint,
+                "install_requires": install_requires,
+                "install_note": install_note,
+            }
+        )
 
     return tools
+
+
+def summarize_tools(tools: List[Dict[str, Any]]) -> Dict[str, Any]:
+    missing_required = [t for t in tools if t["critical"] and not t["ok"]]
+    missing_optional = [t for t in tools if not t["critical"] and not t["ok"]]
+    return {
+        "total": len(tools),
+        "missing_required": len(missing_required),
+        "missing_optional": len(missing_optional),
+    }
+
+
+def missing_tools_for_stage(stage: str) -> Dict[str, List[Dict[str, Any]]]:
+    stage_list = STAGES if stage == "all" else [stage]
+    tools = get_tools()
+    missing_required: List[Dict[str, Any]] = []
+    missing_optional: List[Dict[str, Any]] = []
+
+    for tool in tools:
+        required_for = tool.get("required_for", [])
+        if not any(s in required_for for s in stage_list):
+            continue
+        if tool["critical"]:
+            if not tool["ok"]:
+                missing_required.append(tool)
+        else:
+            if not tool["ok"]:
+                missing_optional.append(tool)
+
+    return {"required": missing_required, "optional": missing_optional}
 
 
 def port_open(host: str, port: int) -> bool:
@@ -325,7 +568,46 @@ def run_detail(run_id: str) -> str:
 
 @app.get("/api/tools")
 def api_tools() -> Any:
-    return jsonify({"tools": get_tools(), "timestamp": datetime.utcnow().isoformat()})
+    tools = get_tools()
+    return jsonify(
+        {
+            "tools": tools,
+            "summary": summarize_tools(tools),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    )
+
+
+@app.post("/api/tools/install")
+def api_tools_install() -> Any:
+    payload = request.get_json(silent=True) or request.form
+    tool_id = payload.get("tool_id", "")
+    tool = TOOLS_INDEX.get(tool_id)
+    if not tool:
+        return jsonify({"error": "tool not found"}), 404
+
+    install = tool.get("install", {})
+    if install.get("mode") != "script":
+        return jsonify({"error": "tool is not installable"}), 400
+
+    script_path = SCRIPTS_DIR / "install_tool.sh"
+    if not script_path.exists():
+        return jsonify({"error": "installer script missing"}), 500
+
+    result = subprocess.run(
+        ["bash", str(script_path), tool_id],
+        cwd=str(ROOT_DIR),
+        capture_output=True,
+        text=True,
+    )
+    output = "\n".join([result.stdout.strip(), result.stderr.strip()]).strip()
+    return jsonify(
+        {
+            "ok": result.returncode == 0,
+            "exit_code": result.returncode,
+            "output": output[-4000:],
+        }
+    )
 
 
 @app.get("/api/stack")
@@ -363,7 +645,22 @@ def api_run() -> Any:
         if running:
             return jsonify({"error": "pipeline is running"}), 409
 
+    missing = missing_tools_for_stage(stage)
+    if missing["required"]:
+        return (
+            jsonify(
+                {
+                    "error": "missing tools",
+                    "missing": missing,
+                    "message": "Thiếu tool bắt buộc, hãy cài trước khi chạy.",
+                }
+            ),
+            422,
+        )
+
     result = start_run(stage)
+    if missing["optional"]:
+        result["missing_optional"] = missing["optional"]
     return jsonify(result)
 
 
