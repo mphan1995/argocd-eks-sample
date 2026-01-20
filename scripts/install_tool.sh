@@ -4,6 +4,7 @@ IFS=$'\n\t'
 
 TOOL_ID="${1:-}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
+KIND_VERSION="${KIND_VERSION:-v0.23.0}"
 
 if [ -z "${TOOL_ID}" ]; then
   echo "Usage: install_tool.sh <tool_id>" >&2
@@ -71,7 +72,7 @@ install_pytest() {
 
 install_kind() {
   ensure_install_dir
-  download "https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64" "${INSTALL_DIR}/kind"
+  download "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64" "${INSTALL_DIR}/kind"
   chmod +x "${INSTALL_DIR}/kind"
 }
 
@@ -108,20 +109,6 @@ install_cosign() {
   chmod +x "${INSTALL_DIR}/cosign"
 }
 
-install_ort_demo() {
-  ensure_install_dir
-  cat > "${INSTALL_DIR}/ort" <<'EOF_ORT'
-#!/usr/bin/env bash
-if [[ "${1:-}" == "--version" || "${1:-}" == "version" ]]; then
-  echo "ort demo 0.1"
-  exit 0
-fi
-echo "ORT demo stub (không phải bản chính thức)."
-exit 0
-EOF_ORT
-  chmod +x "${INSTALL_DIR}/ort"
-}
-
 case "${TOOL_ID}" in
   pytest)
     install_pytest
@@ -143,9 +130,6 @@ case "${TOOL_ID}" in
     ;;
   cosign)
     install_cosign
-    ;;
-  ort)
-    install_ort_demo
     ;;
   *)
     log "Tool không hỗ trợ cài tự động: ${TOOL_ID}"
