@@ -1,4 +1,4 @@
-import { apiGet } from "../core/api.js";
+import { apiGet, apiPost } from "../core/api.js";
 import { $, on } from "../core/dom.js";
 import { startPolling, stopPolling } from "../core/poll.js";
 import { toast } from "../core/toast.js";
@@ -7,6 +7,11 @@ function renderMeta(data) {
   const meta = $("#run-meta");
   if (!meta) return;
   meta.innerHTML = "";
+  const deleteBtn = $("#btn-delete-run");
+  if (deleteBtn) {
+    deleteBtn.disabled = data.state === "running";
+    deleteBtn.classList.toggle("disabled", data.state === "running");
+  }
   const fields = [
     { label: "State", value: data.state },
     { label: "Stage", value: data.stage },
@@ -73,5 +78,16 @@ export function initRunDetail() {
   if (!runId) return;
   const link = $("#download-link");
   if (link) link.setAttribute("href", `/api/runs/${runId}/download`);
+  const deleteBtn = $("#btn-delete-run");
+  on(deleteBtn, "click", async () => {
+    if (!window.confirm(`Xóa run ${runId}?`)) return;
+    const res = await apiPost(`/api/runs/${runId}/delete`, {});
+    if (!res.ok) {
+      toast(res.data?.error || "Xóa run thất bại", "error");
+      return;
+    }
+    toast(`Đã xóa run ${runId}`, "success");
+    window.location.href = "/runs";
+  });
   loadRun(runId);
 }

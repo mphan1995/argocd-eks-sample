@@ -4,6 +4,17 @@ import { toast } from "../core/toast.js";
 import { startPolling, stopPolling } from "../core/poll.js";
 import { redirectToTools } from "../core/install.js";
 
+async function deleteRun(runId) {
+  if (!window.confirm(`Xóa run ${runId}?`)) return;
+  const res = await apiPost(`/api/runs/${runId}/delete`, {});
+  if (!res.ok) {
+    toast(res.data?.error || "Xóa run thất bại", "error");
+    return;
+  }
+  toast(`Đã xóa run ${runId}`, "success");
+  loadRuns();
+}
+
 function renderRuns(runs) {
   const tbody = $("#runs-table tbody");
   if (!tbody) return;
@@ -28,10 +39,23 @@ function renderRuns(runs) {
     timeTd.className = "muted";
     timeTd.textContent = run.started_at || "";
 
+    const actionTd = document.createElement("td");
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn danger mini";
+    delBtn.textContent = "Delete";
+    if (run.state === "running") {
+      delBtn.disabled = true;
+      delBtn.classList.add("disabled");
+    } else {
+      delBtn.addEventListener("click", () => deleteRun(run.run_id));
+    }
+    actionTd.appendChild(delBtn);
+
     tr.appendChild(idTd);
     tr.appendChild(stateTd);
     tr.appendChild(stageTd);
     tr.appendChild(timeTd);
+    tr.appendChild(actionTd);
     tbody.appendChild(tr);
   });
 }
