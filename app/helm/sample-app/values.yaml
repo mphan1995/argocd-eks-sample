@@ -10,3 +10,16 @@ service:
   port: 80
   targetPort: 5000
   nodePort: 30080
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+probes:
+  livenessPath: /health
+  readinessPath: /health
+  port: 5000
