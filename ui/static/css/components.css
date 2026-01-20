@@ -51,6 +51,11 @@
   color: #fff;
 }
 
+.btn.danger {
+  background: #ef4444;
+  color: #fff;
+}
+
 .btn.ghost {
   background: #fff;
   color: var(--ink);
