@@ -85,7 +85,7 @@ TOOLS_CATALOG: List[Dict[str, Any]] = [
         "recommended": "v0.23+",
         "install": {
             "mode": "script",
-            "command": "curl -Lo ~/.local/bin/kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64 && chmod +x ~/.local/bin/kind",
+            "command": "bash scripts/install_tool.sh kind",
             "requires": ["curl"],
         },
     },
@@ -99,7 +99,7 @@ TOOLS_CATALOG: List[Dict[str, Any]] = [
         "recommended": "v1.29+",
         "install": {
             "mode": "script",
-            "command": "curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl && install -m 0755 kubectl ~/.local/bin/kubectl",
+            "command": "bash scripts/install_tool.sh kubectl",
             "requires": ["curl"],
         },
     },
@@ -113,7 +113,7 @@ TOOLS_CATALOG: List[Dict[str, Any]] = [
         "recommended": "v3.14+",
         "install": {
             "mode": "script",
-            "command": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | HELM_INSTALL_DIR=~/.local/bin bash",
+            "command": "bash scripts/install_tool.sh helm",
             "requires": ["curl"],
         },
     },
@@ -127,7 +127,7 @@ TOOLS_CATALOG: List[Dict[str, Any]] = [
         "recommended": "v1.x",
         "install": {
             "mode": "script",
-            "command": "curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b ~/.local/bin",
+            "command": "bash scripts/install_tool.sh syft",
             "requires": ["curl"],
         },
     },
@@ -140,10 +140,8 @@ TOOLS_CATALOG: List[Dict[str, Any]] = [
         "critical": False,
         "recommended": "latest",
         "install": {
-            "mode": "script",
-            "command": "bash scripts/install_tool.sh ort",
-            "requires": [],
-            "note": "Cài bản demo stub để hiển thị OK (không phải ORT chính thức).",
+            "mode": "manual",
+            "hint": "Tải ORT CLI từ https://github.com/oss-review-toolkit/ort/releases, giải nén và add vào PATH. Yêu cầu Java 17+.",
         },
     },
     {
@@ -156,7 +154,7 @@ TOOLS_CATALOG: List[Dict[str, Any]] = [
         "recommended": "v0.50+",
         "install": {
             "mode": "script",
-            "command": "curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ~/.local/bin",
+            "command": "bash scripts/install_tool.sh trivy",
             "requires": ["curl"],
         },
     },
@@ -170,7 +168,7 @@ TOOLS_CATALOG: List[Dict[str, Any]] = [
         "recommended": "v2.x",
         "install": {
             "mode": "script",
-            "command": "curl -sSfL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o ~/.local/bin/cosign && chmod +x ~/.local/bin/cosign",
+            "command": "bash scripts/install_tool.sh cosign",
             "requires": ["curl"],
         },
     },

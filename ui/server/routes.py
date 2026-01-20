@@ -9,6 +9,7 @@ from flask import Blueprint, abort, jsonify, render_template, request, send_file
 from .config import ALLOWED_STAGES, OUTPUT_DIR, ROOT_DIR, SCRIPTS_DIR
 from .runs import (
     RUN_LOCK,
+    delete_run,
     list_runs,
     make_zip,
     run_summary,
@@ -186,3 +187,14 @@ def api_run_download(run_id: str) -> Any:
     if not zip_path:
         return jsonify({"error": "artifact not found"}), 404
     return send_file(zip_path, as_attachment=True, download_name=zip_path.name)
+
+
+@api_bp.post("/runs/<run_id>/delete")
+def api_run_delete(run_id: str) -> Any:
+    try:
+        deleted = delete_run(run_id)
+    except ValueError:
+        abort(400)
+    if not deleted:
+        return jsonify({"error": "run not found"}), 404
+    return jsonify({"ok": True})

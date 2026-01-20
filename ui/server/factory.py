@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flask import Flask, abort, request
 
-from .config import UI_TOKEN
+from .config import ROOT_DIR, UI_TOKEN
 from .routes import api_bp, pages_bp
 
 
@@ -15,7 +15,11 @@ def require_token() -> None:
 
 
 def create_app() -> Flask:
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        template_folder=str(ROOT_DIR / "ui" / "templates"),
+        static_folder=str(ROOT_DIR / "ui" / "static"),
+    )
     app.config["JSON_SORT_KEYS"] = False
 
     @app.before_request

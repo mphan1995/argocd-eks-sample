@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
 import threading
 import uuid
 from datetime import datetime
@@ -184,3 +185,12 @@ def make_zip(run_dir: Path) -> Optional[Path]:
                 rel = full.relative_to(run_dir)
                 zf.write(full, rel)
     return zip_path
+
+
+def delete_run(run_id: str) -> bool:
+    validate_run_id(run_id)
+    run_dir = OUTPUT_DIR / run_id
+    if not run_dir.exists() or run_dir.name == "keys":
+        return False
+    shutil.rmtree(run_dir)
+    return True
