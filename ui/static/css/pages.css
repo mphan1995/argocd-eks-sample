@@ -1,0 +1,28 @@
+#tools-table code {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+#run-warning {
+  margin-bottom: 16px;
+}
+
+.run-now {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.table a {
+  font-weight: 600;
+}
+
+.card h2 + .muted {
+  margin-top: -6px;
+}

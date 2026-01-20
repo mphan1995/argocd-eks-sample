@@ -1,0 +1,38 @@
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 12px;
+}
+
+.hidden {
+  display: none;
+}
+
+.meta {
+  display: grid;
+  gap: 10px;
+}
+
+.meta-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+}
+
+.meta-label {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.meta-value {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .meta-row {
+    grid-template-columns: 1fr;
+  }
+}

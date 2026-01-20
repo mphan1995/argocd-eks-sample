@@ -1,11 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="card">
-  <div class="card-head">
-    <h2>Run {{ run_id }}</h2>
+<section class="page-header">
+  <div>
+    <h1>Run {{ run_id }}</h1>
+    <p class="muted">Chi tiết log cho từng stage.</p>
+  </div>
+  <div class="actions">
     <a id="download-link" class="btn ghost" href="#">Tải artifact</a>
   </div>
+</section>
+
+<div class="card">
   <div id="run-meta" class="meta"></div>
 </div>
 

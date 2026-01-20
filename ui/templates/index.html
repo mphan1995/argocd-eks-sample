@@ -1,14 +1,21 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<section class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="muted">Tình trạng stack, pipeline và hướng dẫn nhanh.</p>
+  </div>
+  <div class="actions">
+    <button id="btn-start" class="btn primary">Start Stack</button>
+    <button id="btn-stop" class="btn ghost">Stop Stack</button>
+  </div>
+</section>
+
 <section class="grid">
   <div class="card">
     <h2>Trạng thái stack</h2>
     <div id="stack-status" class="status-grid"></div>
-    <div class="actions">
-      <button id="btn-start" class="btn primary">Start Stack</button>
-      <button id="btn-stop" class="btn ghost">Stop Stack</button>
-    </div>
   </div>
 
   <div class="card">

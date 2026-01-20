@@ -1,17 +1,41 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<section class="page-header">
+  <div>
+    <h1>Tools Inventory</h1>
+    <p class="muted">Kiểm tra tool bắt buộc/tuỳ chọn và cài đặt nhanh ngay tại đây.</p>
+  </div>
+  <button id="btn-refresh-tools" class="btn ghost">Refresh</button>
+</section>
+
+<section class="grid two-col">
+  <div class="card">
+    <h2>Tổng quan</h2>
+    <div id="tools-summary" class="summary"></div>
+    <div id="missing-tools" class="callout"></div>
+  </div>
+  <div class="card">
+    <h2>Install Log</h2>
+    <p class="muted">Kết quả cài đặt sẽ hiển thị tại đây.</p>
+    <pre id="install-output" class="log-console"></pre>
+  </div>
+</section>
+
 <div class="card">
   <div class="card-head">
-    <h2>Tools</h2>
-    <button id="btn-refresh-tools" class="btn ghost">Refresh</button>
+    <h2>Danh sách tools</h2>
+    <div class="chip-row" id="tool-filters"></div>
   </div>
   <table class="table" id="tools-table">
     <thead>
       <tr>
-        <th>Công cụ</th>
+        <th>Tool</th>
         <th>Trạng thái</th>
         <th>Phiên bản</th>
+        <th>Khuyến nghị</th>
+        <th>Stage</th>
+        <th>Install</th>
       </tr>
     </thead>
     <tbody></tbody>

@@ -1,23 +1,29 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="card">
-  <div class="card-head">
-    <h2>Runs</h2>
-    <div class="actions">
-      <select id="stage-select" class="select">
-        <option value="all">all</option>
-        <option value="01_build">01_build</option>
-        <option value="02_test">02_test</option>
-        <option value="03_sbom">03_sbom</option>
-        <option value="04_scan">04_scan</option>
-        <option value="05_sign">05_sign</option>
-        <option value="06_deploy">06_deploy</option>
-        <option value="07_verify">07_verify</option>
-      </select>
-      <button id="btn-run" class="btn accent">Chạy stage</button>
-    </div>
+<section class="page-header">
+  <div>
+    <h1>Runs</h1>
+    <p class="muted">Chạy pipeline theo stage và theo dõi tiến độ.</p>
   </div>
+  <div class="actions">
+    <select id="stage-select" class="select">
+      <option value="all">all</option>
+      <option value="01_build">01_build</option>
+      <option value="02_test">02_test</option>
+      <option value="03_sbom">03_sbom</option>
+      <option value="04_scan">04_scan</option>
+      <option value="05_sign">05_sign</option>
+      <option value="06_deploy">06_deploy</option>
+      <option value="07_verify">07_verify</option>
+    </select>
+    <button id="btn-run" class="btn accent">Chạy stage</button>
+  </div>
+</section>
+
+<div id="run-warning" class="callout warn hidden"></div>
+
+<div class="card">
   <table class="table" id="runs-table">
     <thead>
       <tr>
