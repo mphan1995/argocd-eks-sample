@@ -26,6 +26,8 @@ fi
 
 check_cmd git "sudo apt-get install -y git"
 check_cmd python3 "sudo apt-get install -y python3"
+check_cmd pip3 "sudo apt-get install -y python3-pip"
+check_cmd curl "sudo apt-get install -y curl"
 
 if command -v python3 >/dev/null 2>&1; then
   if ! python3 - <<'PY'
