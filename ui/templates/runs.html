@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card">
+  <div class="card-head">
+    <h2>Runs</h2>
+    <div class="actions">
+      <select id="stage-select" class="select">
+        <option value="all">all</option>
+        <option value="01_build">01_build</option>
+        <option value="02_test">02_test</option>
+        <option value="03_sbom">03_sbom</option>
+        <option value="04_scan">04_scan</option>
+        <option value="05_sign">05_sign</option>
+        <option value="06_deploy">06_deploy</option>
+        <option value="07_verify">07_verify</option>
+      </select>
+      <button id="btn-run" class="btn accent">Chạy stage</button>
+    </div>
+  </div>
+  <table class="table" id="runs-table">
+    <thead>
+      <tr>
+        <th>Run ID</th>
+        <th>State</th>
+        <th>Stage</th>
+        <th>Started</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+{% endblock %}

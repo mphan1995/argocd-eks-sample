@@ -1,0 +1,9 @@
+policy:
+  sbom_required: true
+  scan:
+    max_severity: HIGH
+    allowlist: []
+  signing:
+    required: true
+  deploy:
+    require_verify: true

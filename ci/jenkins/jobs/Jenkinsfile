@@ -1,0 +1,117 @@
+pipeline {
+  agent any
+  options { timestamps() }
+  environment {
+    REGISTRY_URL = 'localhost:5000'
+    IMAGE_NAME = 'sample-app'
+  }
+  stages {
+    stage('Init') {
+      steps {
+        script {
+          env.RUN_ID = sh(script: 'date +%Y%m%d-%H%M%S', returnStdout: true).trim()
+          env.RUN_DIR = "${env.WORKSPACE}/pipeline/output/${env.RUN_ID}"
+          env.TAG = env.RUN_ID
+          sh "mkdir -p ${env.RUN_DIR}"
+        }
+      }
+    }
+    stage('Build') {
+      steps {
+        withEnv([
+          "RUN_DIR=${env.RUN_DIR}",
+          "WORKSPACE=${env.WORKSPACE}",
+          "REGISTRY_URL=${env.REGISTRY_URL}",
+          "IMAGE_NAME=${env.IMAGE_NAME}",
+          "TAG=${env.TAG}"
+        ]) {
+          sh 'bash pipeline/stages/01_build.sh'
+        }
+      }
+    }
+    stage('Test') {
+      steps {
+        withEnv([
+          "RUN_DIR=${env.RUN_DIR}",
+          "WORKSPACE=${env.WORKSPACE}",
+          "REGISTRY_URL=${env.REGISTRY_URL}",
+          "IMAGE_NAME=${env.IMAGE_NAME}",
+          "TAG=${env.TAG}"
+        ]) {
+          sh 'bash pipeline/stages/02_test.sh'
+        }
+      }
+    }
+    stage('SBOM') {
+      steps {
+        withEnv([
+          "RUN_DIR=${env.RUN_DIR}",
+          "WORKSPACE=${env.WORKSPACE}",
+          "REGISTRY_URL=${env.REGISTRY_URL}",
+          "IMAGE_NAME=${env.IMAGE_NAME}",
+          "TAG=${env.TAG}"
+        ]) {
+          sh 'bash pipeline/stages/03_sbom.sh'
+        }
+      }
+    }
+    stage('Scan') {
+      steps {
+        withEnv([
+          "RUN_DIR=${env.RUN_DIR}",
+          "WORKSPACE=${env.WORKSPACE}",
+          "REGISTRY_URL=${env.REGISTRY_URL}",
+          "IMAGE_NAME=${env.IMAGE_NAME}",
+          "TAG=${env.TAG}"
+        ]) {
+          sh 'bash pipeline/stages/04_scan.sh'
+        }
+      }
+    }
+    stage('Sign') {
+      steps {
+        withEnv([
+          "RUN_DIR=${env.RUN_DIR}",
+          "WORKSPACE=${env.WORKSPACE}",
+          "REGISTRY_URL=${env.REGISTRY_URL}",
+          "IMAGE_NAME=${env.IMAGE_NAME}",
+          "TAG=${env.TAG}"
+        ]) {
+          sh 'bash pipeline/stages/05_sign.sh'
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        withEnv([
+          "RUN_DIR=${env.RUN_DIR}",
+          "WORKSPACE=${env.WORKSPACE}",
+          "REGISTRY_URL=${env.REGISTRY_URL}",
+          "IMAGE_NAME=${env.IMAGE_NAME}",
+          "TAG=${env.TAG}",
+          "KIND_CLUSTER_NAME=local-max"
+        ]) {
+          sh 'bash pipeline/stages/06_deploy.sh'
+        }
+      }
+    }
+    stage('Verify') {
+      steps {
+        withEnv([
+          "RUN_DIR=${env.RUN_DIR}",
+          "WORKSPACE=${env.WORKSPACE}",
+          "REGISTRY_URL=${env.REGISTRY_URL}",
+          "IMAGE_NAME=${env.IMAGE_NAME}",
+          "TAG=${env.TAG}"
+        ]) {
+          sh 'bash pipeline/stages/07_verify.sh'
+        }
+      }
+    }
+  }
+  post {
+    always {
+      archiveArtifacts artifacts: 'pipeline/output/**/*.zip,pipeline/output/**/logs/*.log', allowEmptyArchive: true
+    }
+  }
+}

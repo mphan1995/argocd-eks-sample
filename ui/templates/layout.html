@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "CI/CD Local Max" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body data-page="{{ page }}" data-run-id="{{ run_id|default('') }}">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">MX</div>
+      <div>
+        <div class="title">CI/CD Local Max</div>
+        <div class="subtitle">Local DevOps Platform</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('index') }}">Dashboard</a>
+      <a href="{{ url_for('tools') }}">Tools</a>
+      <a href="{{ url_for('runs') }}">Runs</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    window.UI_TOKEN = "{{ ui_token|default('') }}";
+  </script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

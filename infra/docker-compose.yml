@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  gitea:
+    image: gitea/gitea:1.22.1
+    container_name: gitea
+    ports:
+      - "3000:3000"
+      - "222:22"
+    volumes:
+      - ./volumes/gitea:/data
+      - ../scm/gitea/app.ini:/data/gitea/conf/app.ini:ro
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    networks:
+      - cicd_net
+    restart: unless-stopped
+
+  jenkins:
+    build:
+      context: ../ci/jenkins
+      args:
+        DOCKER_GID: ${DOCKER_GID:-999}
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./volumes/jenkins:/var/jenkins_home
+      - ../ci/jenkins/casc.yaml:/var/jenkins_home/casc.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
+      - JENKINS_ADMIN_USER=${JENKINS_ADMIN_USER:-admin}
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD:-admin123}
+    networks:
+      - cicd_net
+    restart: unless-stopped
+
+  registry:
+    image: registry:2
+    container_name: registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./volumes/registry:/var/lib/registry
+      - ../artifact/registry/config.yml:/etc/docker/registry/config.yml:ro
+    networks:
+      - cicd_net
+    restart: unless-stopped
+
+  nexus:
+    image: sonatype/nexus3:3.68.1
+    container_name: nexus
+    profiles:
+      - nexus
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./volumes/nexus:/nexus-data
+    networks:
+      - cicd_net
+    restart: unless-stopped
+
+networks:
+  cicd_net:
+    driver: bridge

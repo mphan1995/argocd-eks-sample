@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/sample-app
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 5000
+  nodePort: 30080

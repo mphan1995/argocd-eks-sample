@@ -1,0 +1,12 @@
+.env
+.env.local
+ui/.venv/
+.venv/
+__pycache__/
+*.pyc
+pipeline/output/
+infra/volumes/
+*.log
+*.zip
+*.tar.gz
+.DS_Store

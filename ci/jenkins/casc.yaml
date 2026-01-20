@@ -1,0 +1,16 @@
+jenkins:
+  systemMessage: "CI_CD_LOCAL_MAX Jenkins (local)"
+  numExecutors: 2
+  disableRememberMe: true
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_USER}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+unclassified:
+  location:
+    url: "http://localhost:8080/"

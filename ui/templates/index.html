@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="grid">
+  <div class="card">
+    <h2>Trạng thái stack</h2>
+    <div id="stack-status" class="status-grid"></div>
+    <div class="actions">
+      <button id="btn-start" class="btn primary">Start Stack</button>
+      <button id="btn-stop" class="btn ghost">Stop Stack</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pipeline</h2>
+    <p class="muted">Chạy nhanh toàn bộ pipeline từ UI.</p>
+    <button id="btn-run-all" class="btn accent">Run All</button>
+    <div id="run-now" class="run-now"></div>
+  </div>
+
+  <div class="card">
+    <h2>Gợi ý nhanh</h2>
+    <ul class="list">
+      <li>Makefile: make up, make ui, make run-all</li>
+      <li>Artifacts: pipeline/output/&lt;run_id&gt;</li>
+      <li>Logs: pipeline/output/&lt;run_id&gt;/logs</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
