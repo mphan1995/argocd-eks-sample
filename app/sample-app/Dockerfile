@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY app.py /app/app.py
 EXPOSE 5000
 ENV PYTHONUNBUFFERED=1
-CMD ["python", "/app/app.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
