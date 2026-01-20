@@ -41,8 +41,11 @@ helm upgrade --install sample-app "${CHART_DIR}" \
   --set image.tag="${TAG}" \
   --set service.type=NodePort \
   --set service.nodePort=30080 \
-  --wait --timeout 180s
+  --wait --timeout 180s \
+  --atomic \
+  --history-max 5
 
 kubectl -n sample-app get pods -o wide > "${RUN_DIR}/data/k8s_pods.txt"
+kubectl -n sample-app get svc -o wide > "${RUN_DIR}/data/k8s_services.txt"
 
 finalize_stage "${STAGE_NAME}" "success"

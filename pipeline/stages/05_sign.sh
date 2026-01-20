@@ -26,11 +26,18 @@ if command -v cosign >/dev/null 2>&1; then
   fi
   export COSIGN_PASSWORD="${COSIGN_PASSWORD:-localpass}"
   cosign sign --key "${KEY_PREFIX}.key" --tlog-upload=false --allow-insecure-registry "${IMAGE_TAG}"
+  set +e
+  cosign verify --key "${KEY_PREFIX}.pub" --insecure-ignore-tlog "${IMAGE_TAG}" > "${RUN_DIR}/data/verify_sign.json"
+  verify_status=$?
+  set -e
+  if [ "${verify_status}" -ne 0 ]; then
+    log "Verify signature thất bại, tiếp tục pipeline"
+  fi
   echo "signed: ${IMAGE_TAG}" > "${SIGN_PATH}"
 else
   log "Không có cosign; tạo placeholder"
-  cat > "${SIGN_PATH}" <<'EOF_SIGN'
-cosign not found; signature skipped
+  cat > "${SIGN_PATH}" <<EOF_SIGN
+cosign not found; signature skipped for ${IMAGE_TAG}
 EOF_SIGN
 fi
 

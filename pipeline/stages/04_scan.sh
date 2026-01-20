@@ -14,28 +14,44 @@ trap 'finalize_stage "${STAGE_NAME}" "failed"' ERR
 
 SCAN_PATH="${RUN_DIR}/data/scan.json"
 IMAGE_TAG="${REGISTRY_URL}/${IMAGE_NAME}:${TAG}"
+TRIVY_SEVERITY="${TRIVY_SEVERITY:-CRITICAL,HIGH}"
+TRIVY_TIMEOUT="${TRIVY_TIMEOUT:-5m}"
+TRIVY_SKIP_DB_UPDATE="${TRIVY_SKIP_DB_UPDATE:-true}"
 
 if command -v trivy >/dev/null 2>&1; then
   log "Scan image with trivy"
   set +e
-  trivy image --quiet --format json --output "${SCAN_PATH}" --skip-db-update "${IMAGE_TAG}"
+  SKIP_ARG=()
+  if [ "${TRIVY_SKIP_DB_UPDATE}" = "true" ]; then
+    SKIP_ARG=(--skip-db-update)
+  fi
+  trivy image \
+    --quiet \
+    --timeout "${TRIVY_TIMEOUT}" \
+    --severity "${TRIVY_SEVERITY}" \
+    --format json \
+    --output "${SCAN_PATH}" \
+    "${SKIP_ARG[@]}" \
+    "${IMAGE_TAG}"
   exit_code=$?
   set -e
   if [ "$exit_code" -ne 0 ]; then
     log "Trivy lỗi hoặc thiếu DB; tạo placeholder"
-    cat > "${SCAN_PATH}" <<'EOF_SCAN'
+    cat > "${SCAN_PATH}" <<EOF_SCAN
 {
   "tool": "trivy",
-  "note": "scan failed or db missing; placeholder"
+  "note": "scan failed or db missing; placeholder",
+  "image": "${IMAGE_TAG}"
 }
 EOF_SCAN
   fi
 else
   log "Không có trivy; tạo placeholder"
-  cat > "${SCAN_PATH}" <<'EOF_SCAN'
+  cat > "${SCAN_PATH}" <<EOF_SCAN
 {
   "tool": "none",
-  "note": "trivy not found; placeholder scan"
+  "note": "trivy not found; placeholder scan",
+  "image": "${IMAGE_TAG}"
 }
 EOF_SCAN
 fi
