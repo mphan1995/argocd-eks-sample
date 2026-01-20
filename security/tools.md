@@ -1,10 +1,11 @@
 # Security Tools
 
-- SBOM: syft (ưu tiên), ORT (placeholder nếu chưa cấu hình).
+- SBOM: syft (ưu tiên), ORT (placeholder nếu chưa cấu hình hoặc demo stub).
 - Scan: trivy (fallback placeholder nếu thiếu DB/tool).
 - Sign: cosign (keypair local trong pipeline/output/keys).
 
 UI Tools có thể trigger cài đặt nhanh (curl/pip) với fallback hướng dẫn thủ công.
+ORT có tùy chọn cài demo stub để UI hiển thị OK (không thay thế bản chính thức).
 
 Gợi ý cài đặt (tùy hệ):
 - syft: https://github.com/anchore/syft

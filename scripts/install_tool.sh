@@ -25,6 +25,13 @@ require_cmd() {
   fi
 }
 
+is_venv() {
+  python3 - <<'PY'
+import sys
+raise SystemExit(0 if sys.prefix != sys.base_prefix else 1)
+PY
+}
+
 ensure_install_dir() {
   mkdir -p "${INSTALL_DIR}"
   if [[ ":$PATH:" != *":${INSTALL_DIR}:"* ]]; then
@@ -54,7 +61,12 @@ install_pytest() {
     log "Thiếu pip3. Hãy cài: sudo apt-get install -y python3-pip"
     exit 10
   fi
-  python3 -m pip install --user pytest
+  if is_venv; then
+    log "Đang chạy trong venv; cài pytest vào venv hiện tại"
+    python3 -m pip install pytest
+  else
+    python3 -m pip install --user pytest
+  fi
 }
 
 install_kind() {
@@ -96,6 +108,20 @@ install_cosign() {
   chmod +x "${INSTALL_DIR}/cosign"
 }
 
+install_ort_demo() {
+  ensure_install_dir
+  cat > "${INSTALL_DIR}/ort" <<'EOF_ORT'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "--version" || "${1:-}" == "version" ]]; then
+  echo "ort demo 0.1"
+  exit 0
+fi
+echo "ORT demo stub (không phải bản chính thức)."
+exit 0
+EOF_ORT
+  chmod +x "${INSTALL_DIR}/ort"
+}
+
 case "${TOOL_ID}" in
   pytest)
     install_pytest
@@ -117,6 +143,9 @@ case "${TOOL_ID}" in
     ;;
   cosign)
     install_cosign
+    ;;
+  ort)
+    install_ort_demo
     ;;
   *)
     log "Tool không hỗ trợ cài tự động: ${TOOL_ID}"
