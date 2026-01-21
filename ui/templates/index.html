@@ -26,12 +26,19 @@
   </div>
 
   <div class="card">
-    <h2>Gợi ý nhanh</h2>
-    <ul class="list">
-      <li>Makefile: make up, make ui, make run-all</li>
-      <li>Artifacts: pipeline/output/&lt;run_id&gt;</li>
-      <li>Logs: pipeline/output/&lt;run_id&gt;/logs</li>
-    </ul>
+    <h2>WSL Stack Checklist</h2>
+    <p class="muted">Nếu stack DOWN, kiểm tra Docker Desktop + WSL integration.</p>
+    <ol class="checklist">
+      <li>Mở Docker Desktop trên Windows và bật WSL2 integration cho distro Ubuntu.</li>
+      <li>Trong WSL, chạy <strong>docker info</strong> phải OK (không lỗi daemon).</li>
+      <li>Khởi động lại: <strong>make up</strong> hoặc <strong>docker compose -f infra/docker-compose.yml up -d</strong>.</li>
+      <li>Nếu vẫn DOWN, kiểm tra logs từng service hoặc kiểm tra cổng 3000/8080/8081.</li>
+    </ol>
+    <div class="hint-grid">
+      <code>docker info</code>
+      <code>docker compose -f infra/docker-compose.yml ps</code>
+      <code>docker compose -f infra/docker-compose.yml logs -f jenkins</code>
+    </div>
   </div>
 </section>
 {% endblock %}

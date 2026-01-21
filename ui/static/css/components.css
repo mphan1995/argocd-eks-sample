@@ -198,6 +198,34 @@
   gap: 8px;
 }
 
+.checklist {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.checklist li {
+  line-height: 1.4;
+}
+
+.hint-grid {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.hint-grid code {
+  display: block;
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 8px 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
 .log-console {
   min-height: 120px;
 }
