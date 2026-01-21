@@ -44,11 +44,6 @@ if command -v cosign >/dev/null 2>&1; then
   set +e
   cosign "${sign_args[@]}"
   sign_status=$?
-  if [ "${sign_status}" -ne 0 ] && supports_flag sign "--tlog-upload"; then
-    log "Retry sign with --tlog-upload=false"
-    cosign "${sign_args[@]}" --tlog-upload=false
-    sign_status=$?
-  fi
   set -e
 
   if [ "${sign_status}" -ne 0 ]; then

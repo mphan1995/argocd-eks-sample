@@ -21,20 +21,36 @@ SBOM_DIR="${RUN_DIR}/data/sbom"
 SBOM_CDX="${SBOM_DIR}/sbom.cdx.json"
 SBOM_SPDX="${SBOM_DIR}/sbom.spdx.json"
 
+trivy_supports_sbom() {
+  trivy sbom --help >/dev/null 2>&1
+}
+
+trivy_supports_input() {
+  trivy sbom --help 2>/dev/null | grep -q -- "--input"
+}
+
 scan_base=()
 scan_target=""
 scan_note="image"
+scan_mode="image"
 
-if [ -f "${SBOM_CDX}" ]; then
-  scan_base=(trivy sbom --input "${SBOM_CDX}")
-  scan_note="sbom-cyclonedx"
-elif [ -f "${SBOM_SPDX}" ]; then
-  scan_base=(trivy sbom --input "${SBOM_SPDX}")
-  scan_note="sbom-spdx"
-else
+if trivy_supports_sbom && trivy_supports_input; then
+  if [ -f "${SBOM_CDX}" ]; then
+    scan_base=(trivy sbom --input "${SBOM_CDX}")
+    scan_note="sbom-cyclonedx"
+    scan_mode="sbom"
+  elif [ -f "${SBOM_SPDX}" ]; then
+    scan_base=(trivy sbom --input "${SBOM_SPDX}")
+    scan_note="sbom-spdx"
+    scan_mode="sbom"
+  fi
+fi
+
+if [ "${scan_mode}" != "sbom" ]; then
   scan_base=(trivy image)
   scan_target="${IMAGE_TAG}"
   scan_note="image"
+  scan_mode="image"
 fi
 
 run_trivy() {
@@ -65,6 +81,16 @@ if command -v trivy >/dev/null 2>&1; then
     exit_code=$?
   fi
   set -e
+  if [ "$exit_code" -ne 0 ] && [ "${scan_mode}" = "sbom" ]; then
+    log "SBOM scan thất bại; fallback sang image scan"
+    scan_base=(trivy image)
+    scan_target="${IMAGE_TAG}"
+    scan_note="image"
+    set +e
+    run_trivy
+    exit_code=$?
+    set -e
+  fi
   if [ "$exit_code" -ne 0 ]; then
     log "Trivy lỗi hoặc thiếu DB; tạo placeholder"
     cat > "${SCAN_PATH}" <<EOF_SCAN

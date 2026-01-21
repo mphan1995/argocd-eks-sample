@@ -20,6 +20,12 @@ require_cmd docker
 CLUSTER_NAME="${KIND_CLUSTER_NAME:-local-max}"
 IMAGE_TAG="${REGISTRY_URL}/${IMAGE_NAME}:${TAG}"
 CHART_DIR="${WORKSPACE}/app/helm/sample-app"
+DEPLOY_NAME_PREFIX="${DEPLOY_NAME_PREFIX:-devops-production}"
+DEPLOY_TS="$(date +%Y%m%d%H%M%S)"
+RELEASE_NAME="${RELEASE_NAME:-${DEPLOY_NAME_PREFIX}-${DEPLOY_TS}}"
+RELEASE_NAME="${RELEASE_NAME,,}"
+
+echo "${RELEASE_NAME}" > "${RUN_DIR}/data/release_name.txt"
 
 if ! kind get clusters | grep -q "^${CLUSTER_NAME}$"; then
   log "Create kind cluster: ${CLUSTER_NAME}"
@@ -33,14 +39,13 @@ kubectl config use-context "kind-${CLUSTER_NAME}"
 log "Load image into kind"
 kind load docker-image "${IMAGE_TAG}" --name "${CLUSTER_NAME}"
 
-log "Deploy Helm chart"
-helm upgrade --install sample-app "${CHART_DIR}" \
+log "Deploy Helm chart: ${RELEASE_NAME}"
+helm upgrade --install "${RELEASE_NAME}" "${CHART_DIR}" \
   --namespace sample-app \
   --create-namespace \
   --set image.repository="${REGISTRY_URL}/${IMAGE_NAME}" \
   --set image.tag="${TAG}" \
   --set service.type=NodePort \
-  --set service.nodePort=30080 \
   --wait --timeout 180s \
   --atomic \
   --history-max 5

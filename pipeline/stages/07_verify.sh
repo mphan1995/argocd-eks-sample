@@ -15,10 +15,15 @@ trap 'finalize_stage "${STAGE_NAME}" "failed"' ERR
 require_cmd kubectl
 
 NAMESPACE="sample-app"
-SERVICE_NAME="sample-app"
 RESPONSE_PATH="${RUN_DIR}/data/verify_response.json"
 PF_LOG="${RUN_DIR}/data/port_forward.log"
 STATUS_PATH="${RUN_DIR}/data/verify_status.json"
+RELEASE_FILE="${RUN_DIR}/data/release_name.txt"
+
+SERVICE_NAME="sample-app"
+if [ -f "${RELEASE_FILE}" ]; then
+  SERVICE_NAME="$(cat "${RELEASE_FILE}")"
+fi
 
 http_get() {
   local url="$1"
@@ -48,7 +53,7 @@ PY
   printf "%s" "${status}"
 }
 
-kubectl -n "${NAMESPACE}" rollout status deploy/sample-app --timeout=120s
+kubectl -n "${NAMESPACE}" rollout status "deploy/${SERVICE_NAME}" --timeout=120s
 
 NODE_PORT="$(kubectl -n "${NAMESPACE}" get svc "${SERVICE_NAME}" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || true)"
 if [ -n "${NODE_PORT}" ]; then
