@@ -9,7 +9,6 @@ services:
       - "222:22"
     volumes:
       - ./volumes/gitea:/data
-      - ../scm/gitea/app.ini:/data/gitea/conf/app.ini:ro
     environment:
       - USER_UID=1000
       - USER_GID=1000
@@ -30,10 +29,10 @@ services:
       - ../ci/jenkins/casc.yaml:/var/jenkins_home/casc.yaml:ro
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
-      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
-      - JENKINS_ADMIN_USER=${JENKINS_ADMIN_USER:-admin}
-      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD:-admin123}
+      JAVA_OPTS: "${JENKINS_JAVA_OPTS:--Djenkins.install.runSetupWizard=false -Xms256m -Xmx1024m}"
+      CASC_JENKINS_CONFIG: /var/jenkins_home/casc.yaml
+      JENKINS_ADMIN_USER: ${JENKINS_ADMIN_USER:-admin}
+      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:-admin123}
     networks:
       - cicd_net
     restart: unless-stopped
@@ -59,6 +58,8 @@ services:
       - "8081:8081"
     volumes:
       - ./volumes/nexus:/nexus-data
+    environment:
+      INSTALL4J_ADD_VM_PARAMS: "${NEXUS_JAVA_OPTS:--Xms256m -Xmx1024m -Djava.util.prefs.userRoot=/nexus-data/javaprefs}"
     networks:
       - cicd_net
     restart: unless-stopped
