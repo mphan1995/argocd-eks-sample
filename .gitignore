@@ -1,0 +1,23 @@
+# Terraform
+**/.terraform/*
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+**/*.tfplan.txt
+crash.log
+
+# Node
+application/node_modules/
+application/dist/
+application/coverage/
+
+# OS/IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Jenkins local artifacts
+artifacts/
+aws/
+aws-configure json/

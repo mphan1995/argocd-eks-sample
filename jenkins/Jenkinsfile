@@ -1,0 +1,134 @@
+pipeline {
+  agent { label 'jenkins-ec2' }
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    timeout(time: 120, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '30'))
+  }
+
+  environment {
+    AWS_REGION       = 'us-east-1'
+    AWS_ACCOUNT_ID   = '508591325080'
+    ECR_REPO         = 'cloudnative-app'
+    ECR_REGISTRY     = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+    ECR_URI          = "${ECR_REGISTRY}/${ECR_REPO}"
+    EKS_CLUSTER_DEV  = 'platform-dev'
+    EKS_CLUSTER_STG  = 'platform-staging'
+    EKS_CLUSTER_PROD = 'platform-prod'
+    HELM_CHART       = './helm/cloudnative-app'
+    RELEASE_NAME     = 'cloudnative-app'
+    ARTIFACT_BUCKET  = 'cicd-artifacts-508591325080-us-east-1'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        script {
+          env.GIT_SHA = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh 'cd application && npm install && npm run build'
+      }
+    }
+
+    stage('Unit Test') {
+      steps {
+        sh 'cd application && npm run test'
+      }
+    }
+
+    stage('Docker Build') {
+      steps {
+        sh 'docker build -t ${ECR_URI}:${GIT_SHA} -f application/Dockerfile application'
+      }
+    }
+
+    stage('Security Scan (Trivy)') {
+      steps {
+        sh 'bash jenkins/scripts/scan.sh ${ECR_URI}:${GIT_SHA}'
+      }
+    }
+
+    stage('SBOM generation') {
+      steps {
+        sh '''
+          mkdir -p artifacts
+          syft ${ECR_URI}:${GIT_SHA} -o cyclonedx-json > artifacts/sbom-${GIT_SHA}.json
+        '''
+        archiveArtifacts artifacts: 'artifacts/sbom-*.json', fingerprint: true
+      }
+    }
+
+    stage('Push to ECR') {
+      steps {
+        sh '''
+          aws ecr get-login-password --region ${AWS_REGION} \
+            | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          docker push ${ECR_URI}:${GIT_SHA}
+        '''
+
+        script {
+          env.IMAGE_DIGEST = sh(
+            script: "aws ecr describe-images --repository-name ${ECR_REPO} --image-ids imageTag=${GIT_SHA} --query 'imageDetails[0].imageDigest' --output text",
+            returnStdout: true
+          ).trim()
+          env.IMAGE_REF = "${ECR_URI}@${IMAGE_DIGEST}"
+        }
+
+        sh '''
+          if aws s3api head-bucket --bucket ${ARTIFACT_BUCKET} >/dev/null 2>&1; then
+            aws s3 cp artifacts/sbom-${GIT_SHA}.json s3://${ARTIFACT_BUCKET}/sbom/${GIT_SHA}.json
+          fi
+        '''
+      }
+    }
+
+    stage('Deploy to EKS (dev)') {
+      steps {
+        sh '''
+          IMAGE_REPO=${ECR_URI} IMAGE_DIGEST=${IMAGE_DIGEST} \
+          bash jenkins/scripts/deploy.sh ${EKS_CLUSTER_DEV} dev ${HELM_CHART}/values-dev.yaml ${RELEASE_NAME}
+        '''
+      }
+    }
+
+    stage('Approval gate') {
+      steps {
+        timeout(time: 30, unit: 'MINUTES') {
+          input message: "Promote ${GIT_SHA} (${IMAGE_DIGEST}) to staging and production?"
+        }
+      }
+    }
+
+    stage('Deploy to staging') {
+      steps {
+        sh '''
+          IMAGE_REPO=${ECR_URI} IMAGE_DIGEST=${IMAGE_DIGEST} \
+          bash jenkins/scripts/deploy.sh ${EKS_CLUSTER_STG} staging ${HELM_CHART}/values-staging.yaml ${RELEASE_NAME}
+        '''
+      }
+    }
+
+    stage('Deploy to production') {
+      steps {
+        sh '''
+          IMAGE_REPO=${ECR_URI} IMAGE_DIGEST=${IMAGE_DIGEST} \
+          bash jenkins/scripts/deploy.sh ${EKS_CLUSTER_PROD} prod ${HELM_CHART}/values-prod.yaml ${RELEASE_NAME}
+        '''
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}

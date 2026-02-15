@@ -1,0 +1,26 @@
+replicaCount: 3
+
+image:
+  repository: 508591325080.dkr.ecr.us-east-1.amazonaws.com/cloudnative-app
+  tag: latest
+  digest: ""
+
+serviceAccount:
+  create: true
+  name: app-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::508591325080:role/AppRuntimeRole-staging
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 65
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 384Mi
+  limits:
+    cpu: 700m
+    memory: 768Mi
